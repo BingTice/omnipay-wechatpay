@@ -8,16 +8,15 @@ use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\WechatPay\Helper;
 
 /**
- * Class QueryTransferRequest
+ * Class QueryBankRequest
  *
  * @package Omnipay\WechatPay\Message
- * @link    https://pay.weixin.qq.com/wiki/doc/api/tools/mch_pay.php?chapter=14_3
- * @method  QueryTransferResponse send()
+ * @link    https://pay.weixin.qq.com/wiki/doc/api/tools/mch_pay.php?chapter=24_3
+ * @method  QueryBankResponse send()
  */
-class QueryTransferRequest extends BaseAbstractRequest
+class QueryBankRequest extends BaseAbstractRequest
 {
-    protected $endpoint = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo';
-
+    protected $endpoint = 'https://api.mch.weixin.qq.com/mmpaysptrans/query_bank';
 
     /**
      * Get the raw data array for this message. The format of this varies from gateway to
@@ -27,17 +26,16 @@ class QueryTransferRequest extends BaseAbstractRequest
      */
     public function getData()
     {
-        $this->validate('app_id', 'mch_id', 'partner_trade_no', 'cert_path', 'key_path');
+        $this->validate('mch_id', 'partner_trade_no', 'cert_path', 'key_path');
 
         $data = array(
-            'appid'            => $this->getAppId(),
             'mch_id'           => $this->getMchId(),
             'partner_trade_no' => $this->getPartnerTradeNo(),
             'nonce_str'        => md5(uniqid()),
         );
 
         $data = array_filter($data);
-
+        
         $data['sign'] = Helper::sign($data, $this->getApiKey());
 
         return $data;
@@ -108,8 +106,8 @@ class QueryTransferRequest extends BaseAbstractRequest
     public function sendData($data)
     {
         $body         = Helper::array2xml($data);
-        $client       = new Client();
-
+        $client = new Client();
+        
         $options = [
             'body'    => $body,
             'verify'  => true,
@@ -118,7 +116,7 @@ class QueryTransferRequest extends BaseAbstractRequest
         ];
         $response = $client->request('POST', $this->endpoint, $options)->getBody();
         $responseData = Helper::xml2array($response);
-
-        return $this->response = new QueryTransferResponse($this, $responseData);
+        
+        return $this->response = new QueryBankResponse($this, $responseData);
     }
 }

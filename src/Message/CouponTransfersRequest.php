@@ -8,15 +8,15 @@ use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\WechatPay\Helper;
 
 /**
- * Class QueryTransferRequest
+ * Class CouponTransfersRequest
  *
  * @package Omnipay\WechatPay\Message
- * @link    https://pay.weixin.qq.com/wiki/doc/api/tools/mch_pay.php?chapter=14_3
- * @method  QueryTransferResponse send()
+ * @link    https://pay.weixin.qq.com/wiki/doc/api/tools/sp_coupon.php?chapter=12_3
+ * @method  CouponTransfersResponse send()
  */
-class QueryTransferRequest extends BaseAbstractRequest
+class CouponTransfersRequest extends BaseAbstractRequest
 {
-    protected $endpoint = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo';
+    protected $endpoint = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/send_coupon';
 
 
     /**
@@ -27,15 +27,17 @@ class QueryTransferRequest extends BaseAbstractRequest
      */
     public function getData()
     {
-        $this->validate('app_id', 'mch_id', 'partner_trade_no', 'cert_path', 'key_path');
+        $this->validate('coupon_stock_id', 'openid_count', 'partner_trade_no', 'openid', 'app_id', 'mch_id', 'cert_path', 'key_path');
 
         $data = array(
+            'coupon_stock_id'  => $this->getCouponStockId(),
+            'openid_count'     => $this->getOpenIdCount(),
+            'partner_trade_no' => $this->getPartnerTradeNo(),
+            'openid'           => $this->getOpenId(),
             'appid'            => $this->getAppId(),
             'mch_id'           => $this->getMchId(),
-            'partner_trade_no' => $this->getPartnerTradeNo(),
             'nonce_str'        => md5(uniqid()),
         );
-
         $data = array_filter($data);
 
         $data['sign'] = Helper::sign($data, $this->getApiKey());
@@ -43,6 +45,37 @@ class QueryTransferRequest extends BaseAbstractRequest
         return $data;
     }
 
+    /**
+     * @return mixed
+     */
+    public function getCouponStockId()
+    {
+        return $this->getParameter('coupon_stock_id');
+    }
+
+    /**
+     * @param mixed $couponStockId
+     */
+    public function setCouponStockId($couponStockId)
+    {
+        $this->setParameter('coupon_stock_id', $couponStockId);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOpenIdCount()
+    {
+        return $this->getParameter('openid_count');
+    }
+
+    /**
+     * @param mixed $openidCount
+     */
+    public function setOpenIdCount($openIdCount)
+    {
+        $this->setParameter('openid_count', $openIdCount);
+    }
 
     /**
      * @return mixed
@@ -52,13 +85,28 @@ class QueryTransferRequest extends BaseAbstractRequest
         return $this->getParameter('partner_trade_no');
     }
 
-
     /**
      * @param mixed $partnerTradeNo
      */
     public function setPartnerTradeNo($partnerTradeNo)
     {
         $this->setParameter('partner_trade_no', $partnerTradeNo);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOpenId()
+    {
+        return $this->getParameter('openid');
+    }
+
+    /**
+     * @param mixed $openId
+     */
+    public function setOpenId($openid)
+    {
+        $this->setParameter('openid', $openid);
     }
 
 
@@ -119,6 +167,6 @@ class QueryTransferRequest extends BaseAbstractRequest
         $response = $client->request('POST', $this->endpoint, $options)->getBody();
         $responseData = Helper::xml2array($response);
 
-        return $this->response = new QueryTransferResponse($this, $responseData);
+        return $this->response = new CouponTransfersResponse($this, $responseData);
     }
 }
